@@ -14,7 +14,6 @@ serde_json = { version = "1.0.140" }
 anyhow = "1.0.96"
 log = "0.4"
 abi_stable = "0.11.3"
-windivert = "0.6.0"
 lost-metrics-sniffer = { path= ".." }
 rand = "0.9.0"
 
