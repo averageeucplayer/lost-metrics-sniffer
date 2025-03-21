@@ -19,7 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: cargo build --release -p fake-sniffer
+      - run: ls
+      - run: ls ${{ github.workspace }}\*.zip
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "target/release/fake_sniffer.dll"
+          artifacts: "target/release/fake_sniffer.*"
           tag: ${{ github.event.inputs.tag }}
