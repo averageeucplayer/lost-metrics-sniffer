@@ -1,0 +1,23 @@
+name: release
+
+on:
+  push:
+    tags:
+      - '*'
+
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+
+jobs:
+  build_release:
+    name: build_release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo build --release -p fake-sniffer
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "target/release/fake_sniffer.dll"
+          tag: ${{ github.event.inputs.tag }}
