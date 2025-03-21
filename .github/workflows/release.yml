@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: cargo build --release -p fake-sniffer
       - run: ls
-      - run: ls ${{ github.workspace }}\*.zip
+      - run: ls target/release/fake_sniffer
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "target/release/fake_sniffer.*"
