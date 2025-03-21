@@ -11,16 +11,17 @@ on:
         required: true
 
 jobs:
-  build_release:
-    name: build_release
+  release:
+    name: release
     runs-on: windows-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
       - run: cargo build --release -p fake-sniffer
       - run: ls "target\release\fake_sniffer.*"
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "target\release\fake_sniffer.*"
+          artifacts: "target/release/fake_sniffer.*"
           tag: ${{ github.event.inputs.tag }}
