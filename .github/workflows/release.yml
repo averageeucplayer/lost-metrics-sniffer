@@ -11,9 +11,9 @@ on:
         required: true
 
 jobs:
-  build_release:
-    name: build_release
-    runs-on: ubuntu-latest
+  release:
+    name: release
+    runs-on: windows-latest
     permissions:
       contents: write
     steps:
