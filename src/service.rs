@@ -4,7 +4,7 @@ use crate::models::Packet;
 
 #[sabi_trait]
 pub trait PacketSnifferService {
-    fn start(&mut self, port: u16) -> RResult<RReceiver<Packet>, RBoxError>;
+    fn start(&mut self, port: u16) -> RResult<crate::TokioMpscWrapper, RBoxError>;
     fn stop(&mut self) -> RResult<(), RBoxError>;
 }
 

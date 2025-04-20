@@ -1,10 +1,10 @@
-use abi_stable::{std_types::{ROption, RString, RVec}, StableAbi};
+use abi_stable::StableAbi;
+use bincode::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 use super::structures::*;
 use super::types::*;
 
-#[repr(u32)]
-#[derive(Debug, Serialize, Deserialize, StableAbi, Clone)]
+#[derive(Serialize, Encode, Decode, Debug, Clone)]
 pub enum Packet {
     CounterAttack {
         source_id: EntityId
@@ -23,39 +23,39 @@ pub enum Packet {
     },
     InitPC {
         player_id: EntityId,
-        name: RString,
+        name: String,
         character_id: CharacterId,
         class_id: ClassId,
         gear_level: GearLevel,
-        stat_pairs: RVec<StatPair>,
-        status_effect_datas: RVec<StatusEffectData>,
+        stat_pairs: Vec<StatPair>,
+        status_effect_datas: Vec<StatusEffectData>,
     }, 
     NewPC {
         player_id: EntityId,
-        name: RString,
+        name: String,
         class_id: ClassId,
         max_item_level: GearLevel,
         character_id: CharacterId,
-        stat_pairs: RVec<StatPair>,
-        equip_item_datas: RVec<EquipItemData>,
-        status_effect_datas: RVec<StatusEffectData>
+        stat_pairs: Vec<StatPair>,
+        equip_item_datas: Vec<EquipItemData>,
+        status_effect_datas: Vec<StatusEffectData>
     },
     NewNpc {
         object_id: EntityId,
         type_id: NpcId,
         level: u16,
-        balance_level: ROption<u16>,
-        stat_pairs: RVec<StatPair>,
-        status_effect_datas: RVec<StatusEffectData>
+        balance_level: Option<u16>,
+        stat_pairs: Vec<StatPair>,
+        status_effect_datas: Vec<StatusEffectData>
     },
     NewNpcSummon {
         owner_id: EntityId,
         object_id: EntityId,
         type_id: NpcId,
         level: u16,
-        balance_level: ROption<u16>,
-        stat_pairs: RVec<StatPair>,
-        status_effect_datas: RVec<StatusEffectData>
+        balance_level: Option<u16>,
+        stat_pairs: Vec<StatPair>,
+        status_effect_datas: Vec<StatusEffectData>
     },
     NewProjectile {
         projectile_id: EntityId,
@@ -75,7 +75,7 @@ pub enum Packet {
     RaidBossKill,
     RaidResult,
     RemoveObject {
-        unpublished_objects: RVec<EntityId>
+        unpublished_objects: Vec<EntityId>
     },
     SkillCast {
         source_id: EntityId,
@@ -84,12 +84,12 @@ pub enum Packet {
     SkillStart {
         source_id: EntityId,
         skill_id: SkillId,
-        tripod_index: ROption<TripodIndex>,
-        tripod_level: ROption<TripodLevel>,
+        tripod_index: Option<TripodIndex>,
+        tripod_level: Option<TripodLevel>,
     },
     SkillDamageAbnormalMove {
         source_id: EntityId,
-        events: RVec<SkillDamageAbnormalMoveDetails>,
+        events: Vec<SkillDamageAbnormalMoveDetails>,
         skill_id: SkillId,
         skill_effect_id: SkillEffectId,
     },
@@ -100,19 +100,19 @@ pub enum Packet {
     PartyInfo {
         party_instance_id: PartyInstanceId,
         raid_instance_id: RaidInstanceId,
-        members: RVec<PartyMember>
+        members: Vec<PartyMember>
     },
     PartyLeaveResult {
         party_instance_id: PartyInstanceId,
-        name: RString
+        name: String
     },
     PartyStatusEffectAdd {
         character_id: CharacterId,
-        status_effect_datas: RVec<StatusEffectData>
+        status_effect_datas: Vec<StatusEffectData>
     },
     PartyStatusEffectRemove {
         character_id: CharacterId,
-        status_effect_instance_ids: RVec<StatusEffectInstanceId>,
+        status_effect_instance_ids: Vec<StatusEffectInstanceId>,
         reason: u8
     },
     PartyStatusEffectResult {
@@ -127,7 +127,7 @@ pub enum Packet {
     StatusEffectRemove {
         object_id: EntityId,
         character_id: CharacterId,
-        status_effect_instance_ids: RVec<StatusEffectInstanceId>,
+        status_effect_instance_ids: Vec<StatusEffectInstanceId>,
         reason: u8
     },
     TriggerBossBattleStatus,
@@ -151,7 +151,7 @@ pub enum Packet {
         character_id: u64,
         cur_hp: i64,
         max_hp: i64,
-        status_effect_datas: RVec<StatusEffectData>,
+        status_effect_datas: Vec<StatusEffectData>,
     },
     NewTransit {
         channel_id: u32

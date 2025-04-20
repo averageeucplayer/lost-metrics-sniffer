@@ -18,8 +18,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - run: cargo build --release -p fake-sniffer
+      - run: cargo build --release -p fake-tcp-sniffer
+      - run: cargo build --release -p fake-windivert-sniffer
+      - run: cargo build --release -p windivert-sniffer
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: "target/release/fake_sniffer.dll"
+          artifacts: "target/release/fake-tcp-sniffer.dll, target/release/fake-windivert-sniffer.dll, target/release/windivert-sniffer.dll"
           tag: ${{ github.event.inputs.tag }}
