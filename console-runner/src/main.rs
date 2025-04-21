@@ -1,53 +1,28 @@
-use std::{io::{self, Write}, time::Duration};
+use std::{io::{self, Write}, pin::Pin};
 
-use anyhow::*;
-use log::{error, info};
-use lost_metrics_sniffer::{FakeSender, PacketSnifferServiceWrapper};
+use args::CommandArgs;
+use clap::Parser;
+use log::*;
 use simple_logger::SimpleLogger;
-use tokio::{runtime::Runtime, time::sleep};
 
-async fn runner() -> Result<()> {
+mod examples;
+mod args;
 
-    let mut service = PacketSnifferServiceWrapper::fake_tcp()?;
-
-    let port = 80;
-    let mut rx = service.start(port)?;
-
-    std::thread::spawn(move || {
-        let rt = Runtime::new().unwrap();
-        let config = bincode::config::standard();        
-        std::thread::sleep(std::time::Duration::from_secs(5));
-        
-        rt.block_on(async {
-            let mut sender = FakeSender::new();
-            sender.open().await?;
-
-            loop {
-                let packet = lost_metrics_sniffer::models::Packet::CounterAttack { source_id: 1 };
-                let data = bincode::encode_to_vec(packet, config)?;
-
-                sender.send(&data).await?;
-                sleep(Duration::from_secs(1)).await;
-            }
-
-            Ok(())    
-        })?;
-
-        Ok(())
-    });
-
-    while let Some(packet) = rx.recv().await {
-        info!("Received: {:?}", packet);
-    }
-
-    Ok(())
-}
+use examples::*;
 
 #[tokio::main]
 async fn main() {
     SimpleLogger::new().env().init().unwrap();
+    let args = CommandArgs::parse();
 
-    match runner().await {
+    let example: Pin<Box<dyn Future<Output = anyhow::Result<()>>>> = match args.example {
+        args::Example::Tcp1 => Box::pin(async { fake_tcp_sniffer().await }),
+        args::Example::Tcp2 => Box::pin(async { fake_tcp_sniffer_separate_thread().await }),
+        args::Example::Windivert1 => Box::pin(async { fake_windivert_sniffer().await }),
+        args::Example::Windivert2 => Box::pin(async { fake_windivert_sniffer_separate_thread().await }),
+    };
+
+    match example.await {
         Err(err) => error!("{}", err),
         _ => {}
     }

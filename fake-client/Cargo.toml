@@ -13,3 +13,4 @@ simple_logger = "5.0.0"
 clap = { version = "4.5.31", features = ["derive"] }
 interprocess = { version = "2.2.3", features = ["tokio"] }
 bincode = "2.0.1"
+async-channel = "2.3.1"

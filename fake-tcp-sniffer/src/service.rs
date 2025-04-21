@@ -1,10 +1,12 @@
 use std::{fmt::Display, marker::PhantomData, sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread::{sleep, JoinHandle}, time::Duration};
 
 use abi_stable::{export_root_module, external_types::{crossbeam_channel::{self, RReceiver, RSender}}, sabi_extern_fn, sabi_trait::TD_Opaque, std_types::{RBoxError, RResult::{self, RErr, ROk}}, StableAbi};
+use log::*;
 use rand::{rng, Rng};
 use lost_metrics_sniffer::{PacketCapture, PacketSnifferService, PacketSnifferServiceType, PacketSnifferService_TO, ServiceRoot, ServiceRoot_Ref, TokioMpscWrapper};
 use lost_metrics_sniffer::models::Packet;
 use abi_stable::prefix_type::PrefixTypeTrait;
+use simple_logger::SimpleLogger;
 use tokio::{runtime::Runtime, sync::mpsc::{UnboundedReceiver, UnboundedSender}};
 
 use std::error::Error;
@@ -18,6 +20,8 @@ fn instantiate_root_module() -> ServiceRoot_Ref {
 
 #[sabi_extern_fn]
 pub fn new() -> RResult<PacketSnifferServiceType, RBoxError> {
+    SimpleLogger::new().env().init().unwrap();
+
     let this: FakeService = FakeService {
         handle: None,
         close_flag: Arc::new(AtomicBool::new(false)),
@@ -63,6 +67,7 @@ impl PacketSnifferService for FakeService {
 impl FakeService {
 
     fn listen(port: u16, close_flag: Arc<AtomicBool>, tx: UnboundedSender<Packet>) -> anyhow::Result<()> {
+        debug!("Listening");
         let rt = Runtime::new().unwrap();
        
         let handle = rt.block_on(async {
@@ -75,12 +80,22 @@ impl FakeService {
                     break;
                 }
     
-                let data = packet_capturer.recv().await?;
-                let (packet, _)  = bincode::decode_from_slice(&data, config)?;
-                tx.send(packet)?;
+                match packet_capturer.recv().await {
+                    Ok(data) => {
+                        let (packet, _)  = bincode::decode_from_slice(&data, config)?;
+                        tx.send(packet)?;
+                    },
+                    Err(err) => {
+                        debug!("Error occured while receiving: {}", err);
+                        break;
+                    },
+                }
+                
             }
 
+            debug!("Closing...");
             packet_capturer.close().await?;
+            drop(tx);
 
             anyhow::Ok(())
         }); 
