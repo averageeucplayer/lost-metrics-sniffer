@@ -1,10 +1,9 @@
 use abi_stable::{*, library::RootModule, sabi_types::VersionStrings, std_types::{RBox, RBoxError, RResult}, StableAbi};
 use abi_stable::external_types::crossbeam_channel::RReceiver;
 use crate::models::Packet;
-
 #[sabi_trait]
 pub trait PacketSnifferService {
-    fn start(&mut self, port: u16) -> RResult<crate::TokioMpscWrapper, RBoxError>;
+    fn start(&mut self, port: u16) -> RResult<RReceiver<Packet>, RBoxError>;
     fn stop(&mut self) -> RResult<(), RBoxError>;
 }
 

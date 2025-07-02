@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["averageeucplayer"]
 edition = "2024"
 rust-version = "1.85"
-build = "build.rs"
 
 [dependencies]
 log = "0.4"

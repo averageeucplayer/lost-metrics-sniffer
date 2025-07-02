@@ -1,6 +1,5 @@
 use anyhow::{Ok, Result};
 use log::warn;
-use lost_metrics_sniffer::PacketCapture;
 use windivert::{layer::NetworkLayer, prelude::WinDivertFlags, CloseAction, WinDivert};
 
 pub struct WinDivertWrapper {
@@ -18,7 +17,7 @@ impl WinDivertWrapper {
             return Ok(())
         }
 
-        let filter = format!("tcp.SrcPort == {}", port);
+        let filter = format!("inbound && tcp.SrcPort == {}", port);
         let flags = WinDivertFlags::new().set_recv_only().set_sniff();
         let windivert = WinDivert::network(&filter, 0, flags)?;
         self.windivert = Some(windivert);

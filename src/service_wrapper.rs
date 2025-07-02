@@ -5,7 +5,7 @@ use anyhow::*;
 use log::debug;
 use octocrate::{APIConfig, GitHubAPI, PersonalAccessToken, Release};
 use reqwest::Client;
-use crate::{models::Packet, service::{PacketSnifferServiceType, ServiceRoot_Ref}, TokioMpscWrapper};
+use crate::{models::Packet, service::{PacketSnifferServiceType, ServiceRoot_Ref}};
 
 pub struct PacketSnifferServiceWrapper {
     service: PacketSnifferServiceType
@@ -80,7 +80,7 @@ impl PacketSnifferServiceWrapper {
         }
     }
 
-    pub fn start(&mut self, port: u16) -> Result<TokioMpscWrapper> {
+    pub fn start(&mut self, port: u16) -> Result<RReceiver<Packet>> {
         let rx = self.service.start(port).unwrap();
         Ok(rx)
     }
