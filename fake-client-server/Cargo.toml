@@ -1,0 +1,16 @@
+[package]
+name = "fake-client-server"
+version = "0.1.0"
+authors = ["averageeucplayer"]
+edition = "2024"
+rust-version = "1.85"
+
+[dependencies]
+tokio = { version = "1.41.0", features = ["rt", "rt-multi-thread", "net",  "signal", "io-util", "time", "macros"] }
+anyhow = "1.0.96"
+log = "0.4"
+simple_logger = "5.0.0"
+clap = { version = "4.5.31", features = ["derive"] }
+interprocess = { version = "2.2.3", features = ["tokio"] }
+bincode = "2.0.1"
+async-channel = "2.3.1"

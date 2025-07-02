@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "windivert-sniffer",
+    "fake-client-server",
     "console-runner"
 ]
 

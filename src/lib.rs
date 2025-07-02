@@ -2,7 +2,7 @@
 
 pub mod models;
 pub mod service;
-pub mod service_wrapper;
+pub mod packet_sniffer_factory;
 
 pub use service::*;
-pub use service_wrapper::*;
+pub use packet_sniffer_factory::*;

@@ -4,6 +4,7 @@ use abi_stable::{export_root_module, external_types::crossbeam_channel::{self, R
 use lost_metrics_sniffer::{PacketSnifferService, PacketSnifferServiceType, PacketSnifferService_TO, ServiceRoot, ServiceRoot_Ref};
 use lost_metrics_sniffer::models::Packet;
 use abi_stable::prefix_type::PrefixTypeTrait;
+use windivert::{prelude::WinDivertFlags, CloseAction, WinDivert};
 use crate::{error::PacketSnifferServiceError, windivert_wrapper::WinDivertWrapper};
 
 #[export_root_module]
@@ -31,7 +32,7 @@ impl PacketSnifferService for WindivertService {
 
         let (tx, rx) = crossbeam_channel::unbounded::<Packet>();
         let close_flag = self.close_flag.clone();
-        let handle = std::thread::spawn(move || Self::listen(close_flag, tx));
+        let handle = std::thread::spawn(move || Self::listen(port, tx, close_flag));
 
         self.handle = Some(handle);
 
@@ -57,16 +58,19 @@ impl PacketSnifferService for WindivertService {
 
 impl WindivertService {
 
-    fn listen(close_flag: Arc<AtomicBool>, tx: RSender<Packet>) -> RResult<(), RBoxError> {
-        let mut packet_capturer = WinDivertWrapper::new();
+    fn listen(port: u16,  tx: RSender<Packet>, close_flag: Arc<AtomicBool>,) -> RResult<(), RBoxError> {
+        let filter = format!("inbound && tcp.SrcPort == {}", port);
+        let flags = WinDivertFlags::new().set_recv_only().set_sniff();
+        let mut windivert = WinDivert::network(&filter, 0, flags)?;
+        let mut buffer = vec![0u8; 65535];
 
         loop {
             if close_flag.load(Ordering::Relaxed) {
                 break;
             }
 
-            let data = match packet_capturer.recv() {
-                Ok(data) => data,
+            let data = match windivert.recv(Some(&mut buffer)) {
+                Ok(data) => data.data,
                 Err(err) => return RErr(RBoxError::new(PacketSnifferServiceError::Recv(format!("{:?}", err).into()))),
             };
 
@@ -76,11 +80,9 @@ impl WindivertService {
                 }
             }
 
-            #[cfg(test)]
-            sleep(Duration::from_secs(1));
         }
 
-        if let Err(err) = packet_capturer.close() {
+        if let Err(err) = windivert.close(CloseAction::Nothing) {
             return RErr(RBoxError::new(PacketSnifferServiceError::Close(format!("{:?}", err).into())));
         }
 
