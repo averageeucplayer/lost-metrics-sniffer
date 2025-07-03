@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: 7z x -p"${{ secrets.PASSWORD }}" -y -bso0 -bsp0 windivert-sniffer.7z
       - run: cargo build --release -p windivert-sniffer --quiet
+        env:
+          WINDIVERT_PATH: "${{ github.workspace }}/windivert-sniffer"
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "target/release/windivert-sniffer.dll"
