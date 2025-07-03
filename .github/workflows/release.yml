@@ -22,7 +22,7 @@ jobs:
       - run: cargo build --release -p windivert-sniffer --quiet
         env:
           WINDIVERT_PATH: "${{ github.workspace }}/windivert-sniffer"
-      - uses: ncipollo/release-action@v1
+      - uses: softprops/action-gh-release@v2
         with:
-          artifacts: "target/release/windivert-sniffer.dll"
-          tag: ${{ github.event.inputs.tag }}
+          files: "target/release/windivert_sniffer.dll"
+          tag_name: ${{ github.event.inputs.tag }}
