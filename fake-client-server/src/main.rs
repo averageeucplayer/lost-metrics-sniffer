@@ -2,6 +2,7 @@ mod models;
 mod controller;
 mod server;
 mod client;
+mod packet_builder;
 
 use anyhow::Result;
 use clap::Parser;

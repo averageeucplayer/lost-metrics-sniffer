@@ -1,11 +1,14 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc, Mutex}, thread::{sleep, JoinHandle}, time::Duration};
 
-use abi_stable::{export_root_module, external_types::crossbeam_channel::{self, RReceiver, RSender}, sabi_extern_fn, sabi_trait::TD_Opaque, std_types::{RBoxError, RResult::{self, RErr, ROk}, RString}, StableAbi};
+use abi_stable::{export_root_module, external_types::{crossbeam_channel::{self, RReceiver, RSender}, serde_json}, sabi_extern_fn, sabi_trait::TD_Opaque, std_types::{RBoxError, RResult::{self, RErr, ROk}, RString}, StableAbi};
+use etherparse::PacketHeaders;
+use log::{debug, info};
 use lost_metrics_sniffer::{PacketSnifferService, PacketSnifferServiceType, PacketSnifferService_TO, ServiceRoot, ServiceRoot_Ref};
 use lost_metrics_sniffer::models::Packet;
 use abi_stable::prefix_type::PrefixTypeTrait;
+use simple_logger::SimpleLogger;
 use windivert::{prelude::WinDivertFlags, CloseAction, WinDivert};
-use crate::{error::PacketSnifferServiceError, windivert_wrapper::WinDivertWrapper};
+use crate::{error::PacketSnifferServiceError};
 
 #[export_root_module]
 fn instantiate_root_module() -> ServiceRoot_Ref {
@@ -14,6 +17,8 @@ fn instantiate_root_module() -> ServiceRoot_Ref {
 
 #[sabi_extern_fn]
 pub fn new() -> RResult<PacketSnifferServiceType, RBoxError> {
+    SimpleLogger::new().env().init().unwrap();
+
     let this = WindivertService {
         handle: None,
         close_flag: Arc::new(AtomicBool::new(false))
@@ -58,11 +63,17 @@ impl PacketSnifferService for WindivertService {
 
 impl WindivertService {
 
-    fn listen(port: u16,  tx: RSender<Packet>, close_flag: Arc<AtomicBool>,) -> RResult<(), RBoxError> {
-        let filter = format!("inbound && tcp.SrcPort == {}", port);
+    fn listen(port: u16, tx: RSender<Packet>, close_flag: Arc<AtomicBool>) -> RResult<(), RBoxError> {
+        // let filter = format!("inbound && tcp.SrcPort == {}", port);
+        let filter = format!("tcp.SrcPort == {}", port);
         let flags = WinDivertFlags::new().set_recv_only().set_sniff();
-        let mut windivert = WinDivert::network(&filter, 0, flags)?;
+        let mut windivert = match WinDivert::network(&filter, 0, flags) {
+            Ok(windivert) => windivert,
+            Err(err) => return RErr(RBoxError::new(PacketSnifferServiceError::NotAdmin(format!("{:?}", err).into())))
+        };
+
         let mut buffer = vec![0u8; 65535];
+        debug!("Listening on {port}");
 
         loop {
             if close_flag.load(Ordering::Relaxed) {
@@ -89,7 +100,15 @@ impl WindivertService {
         ROk(())
     }
 
-    fn process_data(_data: &[u8]) -> Option<Packet> {
-        None
+    fn process_data(data: &[u8]) -> Option<Packet> {
+        
+        let headers = match PacketHeaders::from_ip_slice(data).ok() {
+            Some(headers) => headers,
+            None => return None,
+        };
+
+        let data = headers.payload.slice().to_vec();
+
+        ::serde_json::from_slice(&data).ok()
     }
 }

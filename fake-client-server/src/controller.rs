@@ -30,10 +30,9 @@ impl Controller {
                     .expect("Failed to spawn child process");
     
                 let server = Server::new();
-                let pipe_name = args.pipe_name.clone();
 
                 tokio::select! {
-                    result = server.run(ip_address, port, pipe_name) => {
+                    result = server.run(ip_address, port) => {
                         if let Err(e) = result {
                             error!("Server error: {}", e);
                         }

@@ -29,10 +29,7 @@ impl Client {
                                 warn!("Server closed connection.");
                                 break;
                             }
-                            Ok(size) => {
-                                // let payload = &buffer[..size];
-                                // info!("Received {} bytes: {:?}", size, payload);
-                            }
+                            Ok(_) => {}
                             Err(err) => {
                                 error!("Failed to connect to {}: {}", address, err);
                                 error!("Retrying in {} seconds...", retry_delay.as_secs());
@@ -41,7 +38,10 @@ impl Client {
                         }
                     }
                 }
-                Err(e) => error!("Failed to connect to {}: {}", address, e),
+                Err(err) => {
+                    error!("Failed to connect to {}: {}", address, err);
+                    return Ok(())
+                },
             }
 
         }

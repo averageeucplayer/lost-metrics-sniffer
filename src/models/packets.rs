@@ -6,7 +6,7 @@ use super::structures::*;
 use super::types::*;
 
 #[repr(C)]
-#[derive(StableAbi, Serialize, Debug, Clone)]
+#[derive(StableAbi, Serialize, Deserialize, Debug, Clone)]
 pub enum Packet {
     CounterAttack {
         source_id: EntityId
@@ -96,6 +96,7 @@ pub enum Packet {
         skill_effect_id: SkillEffectId,
     },
     SkillDamage {
+        source_id: EntityId,
         event: SkillDamageEvent,
         skill_move_option_data: SkillMoveOptionData
     },

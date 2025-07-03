@@ -14,9 +14,6 @@ pub struct CommandArgs {
 
     #[arg(long, default_value_t = 6040)]
     pub port: u16,
-
-    #[arg(long, default_value_t = String::from("Collector"))]
-    pub pipe_name: String,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
