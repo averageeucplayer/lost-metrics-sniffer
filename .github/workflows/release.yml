@@ -18,6 +18,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - run: 7z x -p"${{ secrets.PASSWORD }}" windivert-sniffer.7z
       - run: cargo build --release -p windivert-sniffer
       - uses: ncipollo/release-action@v1
         with:
